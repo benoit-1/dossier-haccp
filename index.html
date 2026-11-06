@@ -1,0 +1,245 @@
+<title>Dossier d'impression</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Mise en page : une colonne, la liste des fiches au centre, le total et le bouton en bas */
+:root{--bg:#f6f7f9;--card:#ffffff;--fg:#14212b;--muted:#5b6b78;--line:#d5dce2;--accent:#1b4965;--accent-fg:#ffffff;--soft:#e8eef3;--ok:#1d6b3f;--bad:#a8321f}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0f171d;--card:#17222a;--fg:#e8eef2;--muted:#9bacb8;--line:#2b3b46;--accent:#6fb3d9;--accent-fg:#0b1a24;--soft:#1f303b;--ok:#6fcf97;--bad:#ff9d8a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f171d;--card:#17222a;--fg:#e8eef2;--muted:#9bacb8;--line:#2b3b46;--accent:#6fb3d9;--accent-fg:#0b1a24;--soft:#1f303b;--ok:#6fcf97;--bad:#ff9d8a;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:400 16px/1.45 "IBM Plex Sans",system-ui,sans-serif;padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1{font-size:26px;line-height:1.2;margin:0;font-weight:600;text-wrap:balance}
+.sub{color:var(--muted);margin:4px 0 0}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:10px}
+.drop{padding:22px 16px;border:2px dashed var(--line);border-radius:10px;background:var(--card);display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.drop.over{border-color:var(--accent);background:var(--soft)}
+.drop p{margin:0;color:var(--muted);font-size:14px}
+.btn{font:500 16px "IBM Plex Sans",sans-serif;background:var(--accent);color:var(--accent-fg);border:0;border-radius:8px;padding:11px 18px;cursor:pointer}
+.btn[disabled]{opacity:.5;cursor:default}
+.btn.alt{background:var(--soft);color:var(--fg);border:1px solid var(--line)}
+.btn:focus-visible,.step button:focus-visible,.step input:focus-visible,.ic:focus-visible,input[type=radio]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+ul{list-style:none;margin:0;padding:0}
+#liste li{display:flex;align-items:center;gap:10px;padding:12px 14px;border-top:1px solid var(--line);flex-wrap:wrap}
+#liste li:first-child{border-top:0}
+.txt{flex:1 1 200px;min-width:0}
+.nm{font:500 16px "IBM Plex Sans",sans-serif;color:var(--fg);background:transparent;border:1px solid transparent;border-radius:6px;padding:3px 6px;margin-left:-7px;width:calc(100% + 7px);box-sizing:border-box}
+.nm:hover,.nm:focus{border-color:var(--line);background:var(--bg)}
+.split{margin-top:6px;font:500 14px "IBM Plex Sans",sans-serif;color:var(--accent);background:transparent;border:1px solid var(--accent);border-radius:8px;padding:7px 12px;cursor:pointer}
+.split:focus-visible,.nm:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.txt span{font-size:13px;color:var(--muted)}
+.step{display:flex;align-items:center;gap:4px}
+.step button{width:40px;height:40px;border-radius:8px;border:1px solid var(--line);background:var(--soft);color:var(--fg);font:500 20px/1 "IBM Plex Sans",sans-serif;cursor:pointer}
+.step input{width:56px;height:40px;text-align:center;font:500 17px "IBM Plex Sans",sans-serif;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;box-sizing:border-box;font-variant-numeric:tabular-nums;-moz-appearance:textfield}
+.step input::-webkit-outer-spin-button,.step input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.tools{display:flex;gap:4px}
+.ic{width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;font:500 15px/1 "IBM Plex Sans",sans-serif}
+.ic[disabled]{opacity:.35;cursor:default}
+.opts{padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.opts legend{font-weight:500;padding:0}
+.opts fieldset{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.opts label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.opts label span{display:flex;flex-direction:column}
+.opts small{color:var(--muted);font-size:13px}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.total{font-variant-numeric:tabular-nums}
+.total b{font-size:22px;font-weight:600}
+#msg{min-height:22px;color:var(--muted);font-size:14px}
+#msg.ok{color:var(--ok)}
+#msg.err{color:var(--bad)}
+.empty{padding:18px 16px;color:var(--muted);font-size:14px}
+.empty ol{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+[hidden]{display:none!important}
+.note{font-size:13px;color:var(--muted)}
+</style>
+<main>
+ <header>
+  <h1>Dossier d'impression</h1>
+  <p class="sub">Dépose tes fiches en PDF, choisis le nombre d'exemplaires de chacune, puis télécharge un seul fichier prêt à imprimer.</p>
+ </header>
+ <div class="drop" id="drop">
+  <button class="btn" id="add" type="button">Ajouter des fiches PDF</button>
+  <p>ou glisse-les ici. Tes fiches restent sur cet appareil et sont gardées pour la prochaine fois.</p>
+  <input id="file" type="file" accept="application/pdf,.pdf" multiple hidden>
+ </div>
+ <div class="panel" id="listpanel">
+  <ul id="liste"></ul>
+  <div class="empty" id="empty">
+   <b>Pour commencer</b>
+   <ol><li>Ajoute un ou plusieurs PDF (une fiche = un fichier).</li><li>Règle le nombre d'exemplaires de chaque fiche.</li><li>Clique sur « Créer le PDF » et imprime-le d'un coup.</li></ol>
+   <p class="note" style="margin:10px 0 0">Une fiche en Word ou en Pages ? Exporte-la d'abord en PDF.</p>
+  </div>
+ </div>
+ <div class="panel opts" id="optpanel" hidden>
+  <fieldset>
+   <legend>Ordre des pages</legend>
+   <label><input type="radio" name="mode" value="series" checked><span>Fiche par fiche<small>Tous les exemplaires de la première fiche, puis ceux de la suivante.</small></span></label>
+   <label><input type="radio" name="mode" value="sets"><span>Jeux complets<small>Un exemplaire de chaque fiche, puis le jeu suivant, et ainsi de suite.</small></span></label>
+  </fieldset>
+  <fieldset>
+   <legend>Mois à imprimer (facultatif)</legend>
+   <input id="mois" class="nm" style="border-color:var(--line);max-width:320px" type="text" placeholder="Ex. : Novembre 2026" aria-label="Mois à imprimer" autocomplete="off">
+   <small>Écrit en bleu en haut de chaque page. Laisse vide pour ne rien ajouter.</small>
+   <select id="moispos" aria-label="Position du mois" style="max-width:200px;font:inherit;padding:6px"><option value="center">En haut au centre</option><option value="left">En haut à gauche</option><option value="right">En haut à droite</option></select>
+  </fieldset>
+ </div>
+ <div class="bar">
+  <div class="total"><b id="tot">0</b> <span id="totl">page à imprimer</span></div>
+  <button class="btn" id="go" type="button" disabled>Créer le PDF</button>
+ </div>
+ <div id="msg" role="status"></div>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script>
+// Assemble les fiches : chaque fiche est incorporée une seule fois puis réutilisée pour chaque copie
+async function buildPdf(PDFLib, items, mode, stamp) {
+  const { PDFDocument, StandardFonts, rgb } = PDFLib;
+  const out = await PDFDocument.create();
+  const emb = [];
+  for (const it of items) {
+    const src = await PDFDocument.load(it.bytes, { ignoreEncryption: true });
+    emb.push(await out.embedPdf(src, src.getPageIndices()));
+  }
+  const seq = [];
+  if (mode === 'series') {
+    items.forEach((it, i) => { for (let c = 0; c < it.copies; c++) seq.push(i); });
+  } else {
+    const mx = Math.max(0, ...items.map(i => i.copies));
+    for (let r = 1; r <= mx; r++) items.forEach((it, i) => { if (it.copies >= r) seq.push(i); });
+  }
+  const font = stamp && stamp.text ? await out.embedFont(StandardFonts.HelveticaBold) : null;
+  for (const i of seq) {
+    for (const ep of emb[i]) {
+      const p = out.addPage([ep.width, ep.height]);
+      p.drawPage(ep);
+      if (font) {
+        const size = 13, m = 24, w = font.widthOfTextAtSize(stamp.text, size);
+        const x = stamp.pos === 'left' ? m : stamp.pos === 'right' ? ep.width - m - w : (ep.width - w) / 2;
+        p.drawText(stamp.text, { x, y: ep.height - m + 4, size, font, color: rgb(0.05, 0.2, 0.75) });
+      }
+    }
+  }
+  return await out.save();
+}
+
+const $=id=>document.getElementById(id);
+let items=[]; // {id,name,bytes,pages,copies}
+let downloads=null, db=null;
+(async()=>{try{downloads=(typeof claude!=="undefined"&&claude.use)?await claude.use("downloads"):null}catch(e){downloads=null}})();
+
+/* Mémoire locale (IndexedDB) : les fiches restent sur l'appareil. Tout est facultatif. */
+function idb(){return new Promise((res,rej)=>{try{const r=indexedDB.open("dossier-impression",1);r.onupgradeneeded=()=>r.result.createObjectStore("fiches",{keyPath:"id"});r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}})}
+async function dbAll(){try{db=db||await idb();return await new Promise((res,rej)=>{const q=db.transaction("fiches").objectStore("fiches").getAll();q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)})}catch(e){return []}}
+async function dbPut(rec){try{db=db||await idb();await new Promise((res,rej)=>{const t=db.transaction("fiches","readwrite");t.objectStore("fiches").put(rec);t.oncomplete=res;t.onerror=()=>rej(t.error)})}catch(e){}}
+async function dbDel(id){try{db=db||await idb();await new Promise((res,rej)=>{const t=db.transaction("fiches","readwrite");t.objectStore("fiches").delete(id);t.oncomplete=res;t.onerror=()=>rej(t.error)})}catch(e){}}
+function save(it){dbPut({id:it.id,name:it.name,bytes:it.bytes,pages:it.pages,copies:it.copies,pos:items.indexOf(it)})}
+function saveAll(){items.forEach(save)}
+
+function plural(n,a,b){return n+" "+(n>1?b:a)}
+function total(){
+  const t=items.reduce((s,i)=>s+i.pages*i.copies,0);
+  $("tot").textContent=t;$("totl").textContent=t>1?"pages à imprimer":"page à imprimer";
+  $("go").disabled=t<1;
+  $("empty").hidden=items.length>0;$("optpanel").hidden=items.length<1;
+}
+function render(){
+  const ul=$("liste");ul.textContent="";
+  items.forEach((it,idx)=>{
+    const li=document.createElement("li");
+    li.innerHTML='<div class="txt"><input class="nm" type="text" aria-label="Nom de la fiche"><span></span><button class="split" type="button" hidden>Séparer en fiches</button></div><div class="step"><button type="button" aria-label="Moins">−</button><input type="number" min="0" max="99" inputmode="numeric"><button type="button" aria-label="Plus">+</button></div><div class="tools"><button class="ic" type="button" aria-label="Monter">↑</button><button class="ic" type="button" aria-label="Descendre">↓</button><button class="ic" type="button" aria-label="Retirer">✕</button></div>';
+    const nm=li.querySelector(".nm");nm.value=it.name.replace(/\.pdf$/i,"");nm.oninput=()=>{it.name=nm.value;save(it)};
+    const sp=li.querySelector(".split");sp.hidden=it.pages<2;sp.onclick=()=>splitItem(it);
+    li.querySelector("span").textContent=plural(it.pages,"page","pages")+" par exemplaire";
+    const [minus,plus]=li.querySelectorAll(".step button");
+    const inp=li.querySelector(".step input");inp.value=it.copies;inp.setAttribute("aria-label","Nombre d'exemplaires : "+it.name);
+    const setC=v=>{it.copies=Math.max(0,Math.min(99,v|0));inp.value=it.copies;total();save(it)};
+    minus.onclick=()=>setC(it.copies-1);plus.onclick=()=>setC(it.copies+1);
+    inp.oninput=()=>{const v=parseInt(inp.value,10);it.copies=Math.max(0,Math.min(99,isNaN(v)?0:v));total();save(it)};
+    inp.onblur=()=>{inp.value=it.copies};
+    const [up,down,del]=li.querySelectorAll(".tools button");
+    up.disabled=idx===0;down.disabled=idx===items.length-1;
+    up.onclick=()=>{[items[idx-1],items[idx]]=[items[idx],items[idx-1]];render();saveAll()};
+    down.onclick=()=>{[items[idx+1],items[idx]]=[items[idx],items[idx+1]];render();saveAll()};
+    del.onclick=()=>{items.splice(idx,1);dbDel(it.id);render();saveAll()};
+    ul.appendChild(li);
+  });
+  total();
+}
+
+async function addFiles(files){
+  const msg=$("msg");msg.className="";msg.textContent="";
+  const bad=[];
+  for(const f of files){
+    if(!/\.pdf$/i.test(f.name)&&f.type!=="application/pdf"){bad.push(f.name);continue}
+    try{
+      const bytes=new Uint8Array(await f.arrayBuffer());
+      const doc=await PDFLib.PDFDocument.load(bytes,{ignoreEncryption:true});
+      const it={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name:f.name,bytes,pages:doc.getPageCount(),copies:1};
+      items.push(it);
+    }catch(e){bad.push(f.name)}
+  }
+  render();saveAll();
+  if(bad.length){msg.className="err";msg.textContent="Fichier non lu : "+bad.join(", ")+". Seuls les PDF sont acceptés."}
+}
+
+function hashBytes(u8){let h=2166136261>>>0;for(let i=0;i<u8.length;i++){h^=u8[i];h=Math.imul(h,16777619)>>>0}return h+":"+u8.length}
+function pageKey(doc,page){
+  try{
+    const ctx=doc.context;let c=page.node.Contents();const parts=[];
+    const add=o=>{const s=ctx.lookup(o);if(s&&s.contents)parts.push(hashBytes(s.contents));else if(s&&s.getContents)parts.push(hashBytes(s.getContents()))};
+    if(c&&c.size&&typeof c.get==="function"&&c.constructor.name==="PDFArray"){for(let i=0;i<c.size();i++)add(c.get(i))}else add(c);
+    const {width,height}=page.getSize();
+    return parts.join("|")+"@"+Math.round(width)+"x"+Math.round(height);
+  }catch(e){return "p"+Math.random()}
+}
+async function splitItem(it){
+  const msg=$("msg");msg.className="";msg.textContent="Séparation en cours…";
+  try{
+    const doc=await PDFLib.PDFDocument.load(it.bytes,{ignoreEncryption:true});
+    const n=doc.getPageCount(),groups=new Map();
+    for(let i=0;i<n;i++){
+      const k=pageKey(doc,doc.getPage(i));
+      if(!groups.has(k))groups.set(k,[]);
+      groups.get(k).push(i);
+    }
+    const base=it.name.replace(/\.pdf$/i,"");
+    const fresh=[];
+    for(const idxs of groups.values()){
+      const out=await PDFLib.PDFDocument.create();
+      const [pg]=await out.copyPages(doc,[idxs[0]]);out.addPage(pg);
+      fresh.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name:base+" – page "+(idxs[0]+1),bytes:await out.save(),pages:1,copies:idxs.length});
+    }
+    const at=items.indexOf(it);
+    items.splice(at,1,...fresh);dbDel(it.id);
+    render();saveAll();
+    msg.className="ok";msg.textContent=n+" pages séparées en "+fresh.length+" fiches. Les pages identiques sont regroupées et le nombre d'exemplaires est déjà réglé.";
+  }catch(e){msg.className="err";msg.textContent="Impossible de séparer ce fichier"+(e&&e.message?" ("+e.message+")":"")+"."}
+}
+$("add").onclick=()=>$("file").click();
+$("file").onchange=async e=>{await addFiles([...e.target.files]);e.target.value=""};
+const drop=$("drop");
+["dragenter","dragover"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("over")}));
+["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove("over")}));
+drop.addEventListener("drop",e=>{if(e.dataTransfer&&e.dataTransfer.files)addFiles([...e.dataTransfer.files])});
+
+$("go").onclick=async()=>{
+  const msg=$("msg");msg.className="";msg.textContent="Création du PDF…";$("go").disabled=true;
+  try{
+    const mode=document.querySelector('input[name=mode]:checked').value;
+    const bytes=await buildPdf(PDFLib,items.filter(i=>i.copies>0),mode,{text:$("mois").value.trim(),pos:$("moispos").value});
+    const blob=new Blob([bytes],{type:"application/pdf"});
+    if(downloads){await downloads.save({filename:"Dossier_a_imprimer.pdf",data:blob})}
+    else{const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="Dossier_a_imprimer.pdf";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),60000)}
+    msg.className="ok";msg.textContent="Fichier enregistré : Dossier_a_imprimer.pdf";
+  }catch(e){
+    msg.className="err";msg.textContent=(e&&e.code==="declined")?"Enregistrement annulé.":"Impossible de créer le PDF"+(e&&e.message?" ("+e.message+")":"")+".";
+  }finally{total()}
+};
+
+(async()=>{
+  const saved=await dbAll();
+  saved.sort((a,b)=>(a.pos||0)-(b.pos||0));
+  items=saved.map(r=>({id:r.id,name:r.name,bytes:r.bytes,pages:r.pages,copies:r.copies}));
+  render();
+})();
+
+</script>
